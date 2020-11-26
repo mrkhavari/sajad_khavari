@@ -10,11 +10,10 @@ Node::Node()
     std::cout << "Node Constructor" << std::endl;
 }
 
-Node::Node(Node _parent , std::vector<std::vector<int>> _arr)
+Node::Node(Node* _parent,std::vector<std::vector<int>> _arr)
 {
-    std::cout << "constructor" << std::endl;
     members = _arr;
-    parent {_parent};
+    parent = _parent;
 }
 
 void Node::random()
@@ -80,8 +79,20 @@ void Node::make_childs()
                 std::vector<std::vector<int>> new_arr = members;
                 new_arr[zero_row][zero_column] = new_arr[i][j];
                 new_arr[i][j] = 0;
-                auto child_node = std::make_shared<Node>(*this,new_arr);
+                if (parent == nullptr || (parent !=nullptr && new_arr != parent->members))
+                {
+                    Node child_node(this,new_arr);
+                    childs.push_back(child_node);
+                }
             }
         }
     }
+}
+
+Node Node::operator=(Node n)
+{
+    parent = n.parent;
+    childs = n.childs;
+    members = n.members;
+    return *this;
 }

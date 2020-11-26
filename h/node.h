@@ -8,14 +8,14 @@ class Node
 {
     public:
         Node();
-        Node(Node , std::vector<std::vector<int>>);
+        Node(Node*,std::vector<std::vector<int>>);
         void random();
         void show();
         void make_childs();
-        std::vector<std::shared_ptr<Node>> childs;
-        std::shared_ptr<Node> parent;
+        Node* parent =nullptr;
+        std::vector<Node> childs;
         std::vector<std::vector<int>> members;
+        Node operator=(Node);
 };
-
 
 #endif
