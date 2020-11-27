@@ -141,7 +141,7 @@ void solve_random_puzzle()
         for (size_t n{1} ; n < order.size() ; n++)
         {
             std::time_t start = time(0);
-            while( difftime(std::time(0), start) <=1 );
+            while( difftime(std::time(0), start) <=0.5 );
             std::cout << "\033[1m\033[30m" << "\n" << "--------------" << "\033[0m" << std::endl;
             std::cout << "\033[1m\033[34m" << "Step : " << n << "\n" << "\033[0m" << std::endl;
             order[order.size()-n-1]->show();
@@ -169,6 +169,8 @@ void solve_your_puzzle()
     std::shared_ptr<Node> goal_node{std::make_shared<Node>(goal_members)};
 
     std::string pattern;
+    std::cout << "\033[1m\033[37m" << "for example" << std::endl;
+    std::cout << "5   3   2 \n1   8   6  ------> 532186704\n7       4" << "\033[0m" << std::endl;
     std::cout << "\033[1m\033[34m" << "You must enter your puzzle pattern : ";
     std::cin >> pattern;
     std::cout << "\033[0m";
@@ -245,6 +247,15 @@ void solve_puzzle_by_your_self()
     node->random();
     while (true)
     {
+        if (node->id == goal_id)
+        {
+            node->show();
+            std::cout << "\033[1m\033[30m" << "------------------------" << "\033[0m" << std::endl;
+            std::cout << "\033[1m\033[32m" << "-------GOOD JOB------" << "\033[0m" << std::endl;
+            std::time_t start1 = time(0);
+            while( difftime(std::time(0), start1) <=1.5);
+            return;
+        }
         node->show();
         std::cout << "\033[1m\033[30m" << "------------------------" << "\033[0m" << std::endl;
         std::cout << "\033[1m\033[34m" << "Choose a move : ";
@@ -311,10 +322,6 @@ void solve_puzzle_by_your_self()
         else
         {
             std::cout << "\033[1m\033[31m" << "This command is not available" << "\033[0m" << std::endl;
-        }
-        if (node->id == goal_id)
-        {
-            std::cout << "\033[1m\033[32m" << "GOOD JOB" << "\033[0m" << std::endl;
         }
     }
 }
