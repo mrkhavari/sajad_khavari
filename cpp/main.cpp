@@ -3,20 +3,22 @@
 #include <vector>
 #include "node.h"
 
-void solve_random_puzzle();
+std::shared_ptr<Node> solve_random_puzzle();
 
 int main()
 {
-    solve_random_puzzle();
+    auto node =solve_random_puzzle();
+    node->show();
 }
 
-void solve_random_puzzle()
+std::shared_ptr<Node> solve_random_puzzle()
 {
+
     int goal_id = 123456780;    
-    
+
     std::vector<int> row1 = {1,2,3};
-    std::vector<int> row2 = {4,6,8};
-    std::vector<int> row3 = {7,5,0};
+    std::vector<int> row2 = {0,1,3};
+    std::vector<int> row3 = {6,8,7};
     std::vector<std::vector<int>> goal_node;
     goal_node.push_back(row1);
     goal_node.push_back(row2);
@@ -37,7 +39,12 @@ void solve_random_puzzle()
     }
     while(true)
     {
-        std::cout << "in this row : " << childs_in_this_row.size() << std::endl;
+        if (childs_in_this_row.size() == 0)
+        {
+            std::cout << "nashod" << std::endl;
+            node = solve_random_puzzle();
+            return node;
+        }
         for (size_t n{0} ; n < childs_in_this_row.size() ; n++)
         {
             if (childs_in_this_row[n]->id == goal_id)
@@ -65,7 +72,7 @@ void solve_random_puzzle()
                 }
                 std::cout << "Step : " << l << std::endl << "\n";
                 childs_in_this_row[n]->show();
-                return;
+                return node;
             }
             else
             {
@@ -93,4 +100,5 @@ void solve_random_puzzle()
         childs_in_this_row = childs_in_later_row;
         childs_in_later_row.clear();
     }
+    return node;
 } 
