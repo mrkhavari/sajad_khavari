@@ -9,6 +9,7 @@ class Node
     public:
         Node();
         Node(Node*,std::vector<std::vector<int>>);
+        Node(std::vector<std::vector<int>>);
         void random();
         void show();
         void make_childs();
@@ -17,6 +18,8 @@ class Node
         std::vector<std::shared_ptr<Node>> childs;
         std::vector<std::vector<int>> members;
         int id;
+        int zero_row;
+        int zero_column;
         
 };
 
