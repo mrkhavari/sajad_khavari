@@ -7,7 +7,7 @@
 
 Node::Node()
 {
-    std::cout << "Node Constructor" << std::endl;
+    std::cout << "" << std::endl;
 }
 
 Node::Node(Node* _parent,std::vector<std::vector<int>> _arr)
@@ -16,6 +16,13 @@ Node::Node(Node* _parent,std::vector<std::vector<int>> _arr)
     parent = _parent;
     make_id();
 }
+
+Node::Node(std::vector<std::vector<int>> _arr)
+{
+    members = _arr;
+    make_id();
+}
+
 
 void Node::random()
 {
@@ -57,21 +64,6 @@ void Node::show()
 
 void Node::make_childs()
 {
-    int zero_row{0};
-    int zero_column{0};
-    for (size_t i{0} ; i < 3 ; i++)
-    {
-        for (size_t j{0} ; j < 3 ; j++)
-        {
-            if (members[i][j] == 0)
-            {
-                zero_row = i;
-                zero_column = j;
-                break;
-            }
-        }
-    }
-
     for (int i{0} ; i < 3 ; i++)
     {
         for (int j{0} ; j < 3 ; j++)
@@ -99,8 +91,14 @@ void Node::make_id()
     {
         for (size_t j{0} ; j < 3 ; j++)
         {
+            if (members[i][j] == 0)
+            {
+                zero_row = i;
+                zero_column =j;
+            }
             id = id + (members[i][j] * (std::pow(10,p)));
             p--;
         }
     }
 }
+
