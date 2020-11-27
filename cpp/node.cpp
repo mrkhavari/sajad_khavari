@@ -51,14 +51,14 @@ void Node::show()
         {
             if (members[i][j] == 0)
             {
-                std::cout << "  " ;
+                std::cout << "      " ;
             }
             else
             {
-                std::cout << members[i][j] << " ";
+                std::cout << "\033[1m\033[33m" << members[i][j] << "     ";
             }
         }
-        std::cout << std::endl;
+        std::cout << "\n" << "\033[0m" << std::endl;
     } 
 }
 
