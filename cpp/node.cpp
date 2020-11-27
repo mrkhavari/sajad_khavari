@@ -14,6 +14,7 @@ Node::Node(Node* _parent,std::vector<std::vector<int>> _arr)
 {
     members = _arr;
     parent = _parent;
+    make_id();
 }
 
 void Node::random()
@@ -32,6 +33,7 @@ void Node::random()
         }
         members.push_back(row);
     }
+    make_id();
 }
 
 void Node::show()
@@ -81,7 +83,7 @@ void Node::make_childs()
                 new_arr[i][j] = 0;
                 if (parent == nullptr || (parent !=nullptr && new_arr != parent->members))
                 {
-                    Node child_node(this,new_arr);
+                    std::shared_ptr<Node> child_node{std::make_shared<Node>(this,new_arr)};
                     childs.push_back(child_node);
                 }
             }
@@ -89,10 +91,16 @@ void Node::make_childs()
     }
 }
 
-Node Node::operator=(Node n)
+void Node::make_id()
 {
-    parent = n.parent;
-    childs = n.childs;
-    members = n.members;
-    return *this;
+    id = 0;
+    size_t p=8;
+    for (size_t i{0} ; i < 3 ; i++)
+    {
+        for (size_t j{0} ; j < 3 ; j++)
+        {
+            id = id + (members[i][j] * (std::pow(10,p)));
+            p--;
+        }
+    }
 }

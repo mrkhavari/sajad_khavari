@@ -8,65 +8,89 @@ void solve_random_puzzle();
 int main()
 {
     solve_random_puzzle();
-    return 0;
 }
 
 void solve_random_puzzle()
 {
+    int goal_id = 123456780;    
+    
     std::vector<int> row1 = {1,2,3};
-    std::vector<int> row2 = {4,5,6};
-    std::vector<int> row3 = {7,8,0};
+    std::vector<int> row2 = {4,6,8};
+    std::vector<int> row3 = {7,5,0};
     std::vector<std::vector<int>> goal_node;
     goal_node.push_back(row1);
     goal_node.push_back(row2);
     goal_node.push_back(row3);
 
-    std::vector<int> rrow1 = {2,6,8};
-    std::vector<int> rrow2 = {4,1,7};
-    std::vector<int> rrow3 = {0,5,3};
-    std::vector<std::vector<int>> goal_node1;
-    goal_node1.push_back(rrow1);
-    goal_node1.push_back(rrow2);
-    goal_node1.push_back(rrow3);
+    std::vector<Node*> order;
 
-    std::vector<Node> order;
-
-    Node node{};
-    node.random();
-    node.make_childs();
-    node.show();
-    std::vector<std::vector<Node>> childs_in_this_row;
-    std::vector<std::vector<Node>> childs_in_later_row;
-    childs_in_this_row.push_back(node.childs);
-    
-    
-    
+    std::shared_ptr<Node> node{std::make_shared<Node>()};
+    node->random();
+    node->show();
+    node->make_childs();
+    std::vector<int> all_id;
+    std::vector<std::shared_ptr<Node>> childs_in_this_row{node->childs};
+    std::vector<std::shared_ptr<Node>> childs_in_later_row;
+    for (size_t i{0} ; i < childs_in_this_row.size() ; i++)
+    {
+        all_id.push_back(childs_in_this_row[i]->id);
+    }
     while(true)
     {
-        childs_in_this_row[0][0].parent->show(); 
-        std::cout <<"in row:" <<  childs_in_this_row.size() << std::endl;
-        for (size_t i{0} ; i < childs_in_this_row.size() ; i++)
+        std::cout << "in this row : " << childs_in_this_row.size() << std::endl;
+        for (size_t n{0} ; n < childs_in_this_row.size() ; n++)
         {
-            for (size_t j{0} ; j < childs_in_this_row[i].size() ; j++)
+            if (childs_in_this_row[n]->id == goal_id)
             {
-                if (childs_in_this_row[i][j].members == goal_node)
+                std::cout << "its ok" << std::endl;
+                Node* _parent = childs_in_this_row[n]->parent;
+                size_t l{1};
+                while (true)
                 {
-                    std::cout << "its ok" << std::endl;
-                    return;
+                    if (_parent == nullptr)
+                    {
+                        for (l ; l < order.size() ;  l++)
+                        {
+                            std::cout << "Step : " << l << std::endl << "\n";
+                            order[order.size()-1-l]->show();
+                            std::cout << "------------" << std::endl;
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        order.push_back(_parent);
+                        _parent = _parent->parent;
+                    }
                 }
-                else
+                std::cout << "Step : " << l << std::endl << "\n";
+                childs_in_this_row[n]->show();
+                return;
+            }
+            else
+            {
+                childs_in_this_row[n]->make_childs();
+                for (size_t m{0} ; m < childs_in_this_row[n]->childs.size() ; m++)
                 {
-                    childs_in_this_row[i][j].make_childs();
-                    childs_in_later_row.push_back(childs_in_this_row[i][j].childs);
+                    bool exist = false;
+                    for (size_t o{0} ; o < all_id.size() ; o++)
+                    {
+                        if (all_id[o] == childs_in_this_row[n]->childs[m]->id)
+                        {
+                            exist = true;
+                            break;
+                        }
+                    }
+                    if(exist == false && childs_in_this_row[n]->childs[m]->id != childs_in_this_row[n]->parent->id ) 
+                    {
+                        childs_in_later_row.push_back(childs_in_this_row[n]->childs[m]);
+                        all_id.push_back(childs_in_this_row[n]->childs[m]->id);
+                    }
                 }
-            }   
+            }
         }
-        std::cout << "last row :" <<  childs_in_later_row.size() << std::endl;
-        std::cout << "--------------" << std::endl;
-        childs_in_later_row[0][0].parent->show();
         childs_in_this_row.clear();
         childs_in_this_row = childs_in_later_row;
-         
-        childs_in_later_row.clear();        
+        childs_in_later_row.clear();
     }
 } 
