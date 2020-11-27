@@ -12,10 +12,12 @@ class Node
         void random();
         void show();
         void make_childs();
-        Node* parent =nullptr;
-        std::vector<Node> childs;
+        void make_id();
+        Node* parent{nullptr};
+        std::vector<std::shared_ptr<Node>> childs;
         std::vector<std::vector<int>> members;
-        Node operator=(Node);
+        int id;
+        
 };
 
 #endif
