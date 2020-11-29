@@ -102,3 +102,27 @@ void Node::make_id()
     }
 }
 
+bool Node::solvable()
+{
+    std::vector<int> compare;
+    int size{0};
+    for (size_t i{0} ; i < 3 ; i++)
+    {
+        for (size_t j{0} ; j < 3 ; j++)
+        {
+            for (size_t n{0} ; n < compare.size() ; n++)
+            {
+                if (members[i][j] < compare[n] && members[i][j] !=0)
+                {
+                    size++;
+                }
+            }
+            compare.push_back(members[i][j]);
+        }
+    }
+    if (size % 2 == 0)
+    {
+        return true;
+    }
+    return false;
+}

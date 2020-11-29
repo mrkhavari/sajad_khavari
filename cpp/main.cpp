@@ -138,9 +138,20 @@ void solve_random_puzzle()
     std::shared_ptr<Node> goal_node{std::make_shared<Node>(goal_members)};
 
     std::shared_ptr<Node> node{std::make_shared<Node>()};
-    node->random();
     std::cout << "\033[1m\033[36m" <<  "I chose a random puzzle"<< "\n" << "\033[0m" << std::endl;
+    node->random();
     node->show();
+    if (node->solvable() == false)
+    {
+        std::time_t start = time(0);
+        while( difftime(std::time(0), start) <=0.5 );
+        std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
+        std::time_t start1 = time(0);
+        while( difftime(std::time(0), start1) <=0.5 );
+        std::cout << "\033[1m\033[32m" << "\n-------Done--------" << "\033[0m" << std::endl;
+        return;
+    }
+    
     std::vector<Node*> order;
     order = solve_puzzle(node);
     if (order.size() == 0)
@@ -209,32 +220,36 @@ void solve_your_puzzle()
     std::shared_ptr<Node> node{std::make_shared<Node>(members)};
     std::cout << "\033[1m\033[36m" << "This is your puzzle and I want to solve it" << "\n" << "\033[0m" << std::endl;
     node->show();
-    std::vector<Node*> order;
-    order = solve_puzzle(node);
-    if (order.size() == 0)
+    if (node->solvable() == false)
     {
+        std::time_t start = time(0);
+        while( difftime(std::time(0), start) <=0.5 );
         std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
+        std::time_t start1 = time(0);
+        while( difftime(std::time(0), start1) <=0.5 );
+        std::cout << "\033[1m\033[32m" << "\n-------Done--------" << "\033[0m" << std::endl;
+        return;
     }
-    else
+    std::vector<Node*> order;
+    order = solve_puzzle(node);    
+    std::cout << "\033[1m\033[32m" << "I solved it" << "\n" << "\033[0m" << std::endl;
+    for (size_t n{1} ; n < order.size() ; n++)
     {
-        std::cout << "\033[1m\033[32m" << "I solved it" << "\n" << "\033[0m" << std::endl;
-        for (size_t n{1} ; n < order.size() ; n++)
-        {
-            std::time_t start = time(0);
-            while( difftime(std::time(0), start) <=0.5 );
-            std::cout << "\033[1m\033[30m" << "\n" << "--------------" << "\033[0m" << std::endl;
-            std::cout << "\033[1m\033[34m" << "Step : " << n << "\n" << "\033[0m" << std::endl;
-            order[order.size()-n-1]->show();
-        }
         std::time_t start = time(0);
         while( difftime(std::time(0), start) <=0.5 );
         std::cout << "\033[1m\033[30m" << "\n" << "--------------" << "\033[0m" << std::endl;
-        std::cout << "\033[1m\033[34m" << "Step : " << order.size() << "\n" << "\033[0m" << std::endl;
-        goal_node->show();    
+        std::cout << "\033[1m\033[34m" << "Step : " << n << "\n" << "\033[0m" << std::endl;
+        order[order.size()-n-1]->show();
     }
-    std::cout << "\033[1m\033[32m" << "\n-------Done--------" << "\033[0m" << std::endl;
     std::time_t start = time(0);
-    while( difftime(std::time(0), start) <=1 );
+    while( difftime(std::time(0), start) <=0.5 );
+    std::cout << "\033[1m\033[30m" << "\n" << "--------------" << "\033[0m" << std::endl;
+    std::cout << "\033[1m\033[34m" << "Step : " << order.size() << "\n" << "\033[0m" << std::endl;
+    goal_node->show();
+
+    std::cout << "\033[1m\033[32m" << "\n-------Done--------" << "\033[0m" << std::endl;
+    std::time_t start1 = time(0);
+    while( difftime(std::time(0), start1) <=1 );
 }
 
 void solve_puzzle_by_your_self()
@@ -257,6 +272,7 @@ void solve_puzzle_by_your_self()
     int goal_id = 123456780;
     std::shared_ptr<Node> node{std::make_shared<Node>()};
     node->random();
+    
     while (true)
     {
         if (node->id == goal_id)
@@ -276,7 +292,46 @@ void solve_puzzle_by_your_self()
         std::cout << "\033[0m";
         if (cm == "0")
         {
+            std::cout << "\033[1m\033[30m" << "Please wait for me to try" << "\033[0m" << std::endl;
+            std::vector<int> row1 = {1,2,3};
+            std::vector<int> row2 = {4,5,6};
+            std::vector<int> row3 = {7,8,0};
+            std::vector<std::vector<int>> goal_members;
+            goal_members.push_back(row1);
+            goal_members.push_back(row2);
+            goal_members.push_back(row3);
+            std::shared_ptr<Node> goal_node{std::make_shared<Node>(goal_members)};
+            std::vector<Node*> order;
+            if (node->solvable() == false)
+            {
+                std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
+                return;                
+            }
+            order = solve_puzzle(node);
+            if (order.size() == 0)
+            {
+                std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
+            }
+            else
+            {
+                std::cout << "\033[1m\033[32m" << "I solved it" << "\n" << "\033[0m" << std::endl;
+                for (size_t n{1} ; n < order.size() ; n++)
+                {
+                    std::time_t start = time(0);
+                    while( difftime(std::time(0), start) <=0.5 );
+                    std::cout << "\033[1m\033[30m" << "\n" << "--------------" << "\033[0m" << std::endl;
+                    std::cout << "\033[1m\033[34m" << "Step : " << n << "\n" << "\033[0m" << std::endl;
+                    order[order.size()-n-1]->show();
+                }
+                std::time_t start = time(0);
+                while( difftime(std::time(0), start) <=0.5 );
+                std::cout << "\033[1m\033[30m" << "\n" << "--------------" << "\033[0m" << std::endl;
+                std::cout << "\033[1m\033[34m" << "Step : " << order.size() << "\n" << "\033[0m" << std::endl;
+                goal_node->show();
+            }
             std::cout << "\033[1m\033[32m" << "\n-------Done--------" << "\033[0m" << std::endl;
+            std::time_t start = time(0);
+            while( difftime(std::time(0), start) <=1);
             return;
         }
         else if (cm == "8" || cm == "w")
