@@ -14,13 +14,13 @@ class Node
         void show();
         void make_childs();
         void make_id();
+        bool solvable();
         Node* parent{nullptr};
         std::vector<std::shared_ptr<Node>> childs;
         std::vector<std::vector<int>> members;
         int id;
         int zero_row;
-        int zero_column;
-        
+        int zero_column;   
 };
 
 #endif
