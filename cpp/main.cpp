@@ -239,8 +239,15 @@ void solve_random_puzzle()
     std::shared_ptr<Node> goal_node{std::make_shared<Node>(goal_members)};
 
     std::shared_ptr<Node> node{std::make_shared<Node>()};
+    while (true)
+    {
+        node->random();
+        if (node->solvable() == true)
+        {
+            break;
+        }
+    } 
     std::cout << "\033[1m\033[36m" <<  "I chose a random puzzle"<< "\n" << "\033[0m" << std::endl;
-    node->random();
     node->show();
     if (node->solvable() == false)
     {
@@ -252,6 +259,8 @@ void solve_random_puzzle()
         std::cout << "\033[1m\033[32m" << "\n-------Done--------" << "\033[0m" << std::endl;
         return;
     }
+    std::time_t start1 = time(0);
+    while( difftime(std::time(0), start1) <=1);
     std::cout << "\033[1m\033[36m" << "Choose the solution method" << std::endl;
     std::cout << "\033[1m\033[35m" << "1 : Breath First Search (BFS)" << std::endl;
     std::cout << "2 : Depth Limited Search (DLS) " << std::endl;
@@ -356,6 +365,8 @@ void solve_your_puzzle()
         std::cout << "\033[1m\033[32m" << "\n-------Done--------" << "\033[0m" << std::endl;
         return;
     }
+    std::time_t start2 = time(0);
+    while( difftime(std::time(0), start2) <=1);
     std::cout << "\033[1m\033[36m" << "Choose the solution method" << std::endl;
     std::cout << "\033[1m\033[35m" << "1 : Breath First Search (BFS)" << std::endl;
     std::cout << "2 : Depth Limited Search (DLS) " << std::endl;
@@ -405,8 +416,8 @@ void solve_your_puzzle()
     goal_node->show();
 
     std::cout << "\033[1m\033[32m" << "\n-------Done--------" << "\033[0m" << std::endl;
-    std::time_t start1 = time(0);
-    while( difftime(std::time(0), start1) <=1 );
+    std::time_t start3 = time(0);
+    while( difftime(std::time(0), start3) <=1 );
 }
 
 void solve_puzzle_by_your_self()
@@ -428,8 +439,14 @@ void solve_puzzle_by_your_self()
 
     int goal_id = 123456780;
     std::shared_ptr<Node> node{std::make_shared<Node>()};
-    node->random();
-    
+    while (true)
+    {
+        node->random();
+        if (node->solvable() == true)
+        {
+            break;
+        }
+    }   
     while (true)
     {
         if (node->id == goal_id)
@@ -585,6 +602,16 @@ void solve_random_puzzle_with_special_goal()
     node->random();
     std::cout << "\033[1m\033[36m" <<  "I chose a random puzzle"<< "\n" << "\033[0m" << std::endl;
     node->show();
+    if (node->solvable() != goal_node->solvable())
+    {
+        std::time_t start1 = time(0);
+        while( difftime(std::time(0), start1) <=1);
+        std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;   
+        std::cout << "\033[1m\033[32m" << "\n-------Done--------" << "\033[0m" << std::endl;
+        std::time_t start2 = time(0);
+        while( difftime(std::time(0), start2) <=1);
+        return;
+    }
     std::cout << "\033[1m\033[36m" << "Choose the solution method" << std::endl;
     std::cout << "\033[1m\033[35m" << "1 : Breath First Search (BFS)" << std::endl;
     std::cout << "2 : Depth Limited Search (DLS) " << std::endl;
@@ -696,7 +723,16 @@ void solve_your_puzzle_with_special_goal()
         members_n.push_back(row);
     }
     std::shared_ptr<Node> goal_node{std::make_shared<Node>(members_n)};
-
+    if (node->solvable() != goal_node->solvable())
+    {
+        std::time_t start1 = time(0);
+        while( difftime(std::time(0), start1) <=1);
+        std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;   
+        std::cout << "\033[1m\033[32m" << "\n-------Done--------" << "\033[0m" << std::endl;
+        std::time_t start2 = time(0);
+        while( difftime(std::time(0), start2) <=1);
+        return;
+    }
     std::cout << "\033[1m\033[36m" << "Choose the solution method" << std::endl;
     std::cout << "\033[1m\033[35m" << "1 : Breath First Search (BFS)" << std::endl;
     std::cout << "2 : Depth Limited Search (DLS) " << std::endl;
