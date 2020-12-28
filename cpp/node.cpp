@@ -10,10 +10,22 @@ Node::Node()
     std::cout << "" << std::endl;
 }
 
+Node::Node(Node* _node)
+{
+    members = _node->members;
+    parent = _node->parent;
+    childs = _node->childs;
+    id = _node->id;
+    zero_column = _node->zero_column;
+    zero_row = _node->zero_row;
+    count = _node->count;
+}
+
 Node::Node(Node* _parent,std::vector<std::vector<int>> _arr)
 {
     members = _arr;
-    parent = _parent;
+    std::shared_ptr<Node> p{std::make_shared<Node>(_parent)};
+    parent = p;
     make_id();
 }
 

@@ -6,19 +6,25 @@
 #include <string>
 #include <sstream>
 #include <cmath>
+#include <thread>
 
-std::vector<Node*> solve_puzzle(std::shared_ptr<Node> node ,int goal_id = 123456780);
+std::vector<std::shared_ptr<Node>> solve_puzzle_bfs(std::shared_ptr<Node> node ,int goal_id = 123456780);
+std::vector<std::shared_ptr<Node>> solve_puzzle_dls(std::shared_ptr<Node> node , size_t limit = 30 ,int goal_id = 123456780) ;
+std::vector<std::shared_ptr<Node>> bidirectional(std::shared_ptr<Node> node ,int goal_id = 123456780);
 void solve_random_puzzle();
 void solve_your_puzzle();
 void solve_puzzle_by_your_self();
 void solve_random_puzzle_with_special_goal();
 void solve_your_puzzle_with_special_goal();
 
-
+bool complete = false;
+std::vector<std::shared_ptr<Node>> order_bfs;
+std::vector<std::shared_ptr<Node>> order_dls;
 
 int main()
-{  
-    std::cout << "\033[1m\033[32m" << "\nWelcome To Sajad Puzzle Solver" << "\033[0m" << std::endl;
+
+{    
+   std::cout << "\033[1m\033[32m" << "\nWelcome To Sajad Puzzle Solver" << "\033[0m" << std::endl;
     while (true)
     {
         std::cout << "\033[1m\033[30m" <<  "----------------------------------------" << "\033[0m" << std::endl;
@@ -60,11 +66,14 @@ int main()
             return 0;
         }
     }
+    return 0;
 }
 
-std::vector<Node*> solve_puzzle(std::shared_ptr<Node> node , int goal_id)
+
+std::vector<std::shared_ptr<Node>> solve_puzzle_bfs(std::shared_ptr<Node> node , int goal_id)
 {   
-    std::vector<Node*> order;
+    complete = false;
+    order_bfs.clear();
     node->make_childs();
     std::vector<int> all_id;
     std::vector<std::shared_ptr<Node>> childs_in_this_row{node->childs};
@@ -75,24 +84,29 @@ std::vector<Node*> solve_puzzle(std::shared_ptr<Node> node , int goal_id)
     }
     while(true)
     {
+        if (complete == true)
+        {
+            return order_bfs;
+        }   
         if (childs_in_this_row.size() == 0)
         {
-            return order;
+            return order_bfs;
         }
         for (size_t n{0} ; n < childs_in_this_row.size() ; n++)
         {
             if (childs_in_this_row[n]->id == goal_id)
             {
-                Node* _parent = childs_in_this_row[n]->parent;
+                std::shared_ptr<Node> _parent = childs_in_this_row[n]->parent;
                 while (true)
                 {
                     if (_parent == nullptr)
                     {
-                        return order;
+                        complete = true;
+                        return order_bfs;
                     }
                     else
                     {
-                        order.push_back(_parent);
+                        order_bfs.push_back(_parent);
                         _parent = _parent->parent;
                     }
                 }
@@ -123,8 +137,95 @@ std::vector<Node*> solve_puzzle(std::shared_ptr<Node> node , int goal_id)
         childs_in_this_row = childs_in_later_row;
         childs_in_later_row.clear();
     }
-    return order;
-} 
+    return order_bfs;
+}
+
+std::vector<std::shared_ptr<Node>> solve_puzzle_dls(std::shared_ptr<Node> node ,size_t limit,int goal_id)
+{
+    complete = false;
+    order_dls.clear();
+    std::shared_ptr<Node> thisnode = node;
+    std::vector<int> all_id;
+    size_t depth = 0;
+    while (true)
+    {   
+        if (complete == true)
+        {
+            return order_dls;
+        }   
+        if (thisnode->id == goal_id)
+        {
+            std::shared_ptr<Node> _parent = thisnode->parent;
+            while (true)
+            {
+                if (_parent == nullptr)
+                {
+                    complete = true;
+                    return order_dls;
+                }
+                else
+                {
+                    order_dls.push_back(_parent);
+                    _parent = _parent->parent;
+                }
+            }
+        }
+
+        else
+        {
+            if (depth < limit)
+            {
+                thisnode->childs.clear();
+                thisnode->make_childs();                
+                if (thisnode->childs.size() > thisnode->count)
+                {
+                    thisnode = thisnode->childs[thisnode->count];
+                    depth++;
+                }
+
+                else
+                {
+                    if (thisnode->parent == nullptr)
+                    {
+                        return order_dls;
+                    }
+                    thisnode->parent->count++;
+                    thisnode = thisnode->parent;
+                    depth--;
+                }
+                
+            }
+            
+            else
+            {
+                thisnode->parent->count++;
+                thisnode = thisnode->parent;
+                depth--;   
+            }
+            
+        }
+        
+    }
+    
+    return order_dls;
+}
+
+std::vector<std::shared_ptr<Node>> bidirectional(std::shared_ptr<Node> node ,int goal_id)
+{
+    std::thread first (solve_puzzle_bfs,node,goal_id);
+    std::thread second (solve_puzzle_dls,node,30,goal_id);
+    first.join();
+    second.join();
+    if (order_bfs.size() > order_dls.size())
+    {
+        return order_bfs;
+    }
+    else 
+    {
+        return order_dls;
+    }
+    
+}
 
 void solve_random_puzzle()
 {
@@ -151,9 +252,34 @@ void solve_random_puzzle()
         std::cout << "\033[1m\033[32m" << "\n-------Done--------" << "\033[0m" << std::endl;
         return;
     }
-    
-    std::vector<Node*> order;
-    order = solve_puzzle(node);
+    std::cout << "\033[1m\033[36m" << "Choose the solution method" << std::endl;
+    std::cout << "\033[1m\033[35m" << "1 : Breath First Search (BFS)" << std::endl;
+    std::cout << "2 : Depth Limited Search (DLS) " << std::endl;
+    std::cout << "3 : Bidirectional" << "\033[0m" << std::endl;
+    std::cout << "\033[1m\033[34m" << "\nWhats Your Command : ";
+    int type;
+    std::cin >> type;
+    std::cout << "\n" << "\033[0m";
+    std::vector<std::shared_ptr<Node>> order;
+    if (type == 1)
+    {
+        order = solve_puzzle_bfs(node);
+    }
+
+    if (type == 2)
+    {
+        size_t lim;
+        std::cout << "\033[1m\033[34m" << "\nEnter the search limits : ";
+        std::cin >> lim;
+        std::cout << "\n" << "\033[0m";
+        order = solve_puzzle_dls(node,lim);
+    }
+
+    if (type == 3)
+    {
+        order = bidirectional(node);
+    }
+
     if (order.size() == 0)
     {
         std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
@@ -230,8 +356,39 @@ void solve_your_puzzle()
         std::cout << "\033[1m\033[32m" << "\n-------Done--------" << "\033[0m" << std::endl;
         return;
     }
-    std::vector<Node*> order;
-    order = solve_puzzle(node);    
+    std::cout << "\033[1m\033[36m" << "Choose the solution method" << std::endl;
+    std::cout << "\033[1m\033[35m" << "1 : Breath First Search (BFS)" << std::endl;
+    std::cout << "2 : Depth Limited Search (DLS) " << std::endl;
+    std::cout << "3 : Bidirectional" << "\033[0m" << std::endl;
+    std::cout << "\033[1m\033[34m" << "\nWhats Your Command : ";
+    int type;
+    std::cin >> type;
+    std::cout << "\n" << "\033[0m";
+    std::vector<std::shared_ptr<Node>> order;
+    if (type == 1)
+    {
+        order = solve_puzzle_bfs(node);
+    }
+
+    if (type == 2)
+    {
+        size_t lim;
+        std::cout << "\033[1m\033[34m" << "\nEnter the search limits : ";
+        std::cin >> lim;
+        std::cout << "\n" << "\033[0m";
+        order = solve_puzzle_dls(node,lim);
+    }
+
+    if (type == 3)
+    {
+        order = bidirectional(node);
+    }
+
+    if (order.size() == 0)
+    {
+        std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
+        return;
+    }
     std::cout << "\033[1m\033[32m" << "I solved it" << "\n" << "\033[0m" << std::endl;
     for (size_t n{1} ; n < order.size() ; n++)
     {
@@ -301,13 +458,13 @@ void solve_puzzle_by_your_self()
             goal_members.push_back(row2);
             goal_members.push_back(row3);
             std::shared_ptr<Node> goal_node{std::make_shared<Node>(goal_members)};
-            std::vector<Node*> order;
+            std::vector<std::shared_ptr<Node>> order;
             if (node->solvable() == false)
             {
                 std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
                 return;                
             }
-            order = solve_puzzle(node);
+            order = solve_puzzle_bfs(node);
             if (order.size() == 0)
             {
                 std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
@@ -428,8 +585,34 @@ void solve_random_puzzle_with_special_goal()
     node->random();
     std::cout << "\033[1m\033[36m" <<  "I chose a random puzzle"<< "\n" << "\033[0m" << std::endl;
     node->show();
-    std::vector<Node*> order;
-    order = solve_puzzle(node,goal_id);
+    std::cout << "\033[1m\033[36m" << "Choose the solution method" << std::endl;
+    std::cout << "\033[1m\033[35m" << "1 : Breath First Search (BFS)" << std::endl;
+    std::cout << "2 : Depth Limited Search (DLS) " << std::endl;
+    std::cout << "3 : Bidirectional" << "\033[0m" << std::endl;
+    std::cout << "\033[1m\033[34m" << "\nWhats Your Command : ";
+    int type;
+    std::cin >> type;
+    std::cout << "\n" << "\033[0m";
+    std::vector<std::shared_ptr<Node>> order;
+    if (type == 1)
+    {
+        order = solve_puzzle_bfs(node,goal_id);
+    }
+
+    if (type == 2)
+    {
+        size_t lim;
+        std::cout << "\033[1m\033[34m" << "\nEnter the search limits : ";
+        std::cin >> lim;
+        std::cout << "\n" << "\033[0m";
+        order = solve_puzzle_dls(node,lim,goal_id);
+    }
+
+    if (type == 3)
+    {
+        order = bidirectional(node,goal_id);
+    }
+
     if (order.size() == 0)
     {
         std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
@@ -514,8 +697,34 @@ void solve_your_puzzle_with_special_goal()
     }
     std::shared_ptr<Node> goal_node{std::make_shared<Node>(members_n)};
 
-    std::vector<Node*> order;
-    order = solve_puzzle(node,goal_id);
+    std::cout << "\033[1m\033[36m" << "Choose the solution method" << std::endl;
+    std::cout << "\033[1m\033[35m" << "1 : Breath First Search (BFS)" << std::endl;
+    std::cout << "2 : Depth Limited Search (DLS) " << std::endl;
+    std::cout << "3 : Bidirectional" << "\033[0m" << std::endl;
+    std::cout << "\033[1m\033[34m" << "\nWhats Your Command : ";
+    int type;
+    std::cin >> type;
+    std::cout << "\n" << "\033[0m";
+    std::vector<std::shared_ptr<Node>> order;
+    if (type == 1)
+    {
+        order = solve_puzzle_bfs(node,goal_id);
+    }
+
+    if (type == 2)
+    {
+        size_t lim;
+        std::cout << "\033[1m\033[34m" << "\nEnter the search limits : ";
+        std::cin >> lim;
+        std::cout << "\n" << "\033[0m";
+        order = solve_puzzle_dls(node,lim,goal_id);
+    }
+
+    if (type == 3)
+    {
+        order = bidirectional(node,goal_id);
+    }
+
     if (order.size() == 0)
     {
         std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
