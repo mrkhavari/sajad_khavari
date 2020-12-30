@@ -9,8 +9,9 @@
 #include <thread>
 
 std::vector<std::shared_ptr<Node>> solve_puzzle_bfs(std::shared_ptr<Node> node ,int goal_id = 123456780);
-std::vector<std::shared_ptr<Node>> solve_puzzle_dls(std::shared_ptr<Node> node , size_t limit = 30 ,int goal_id = 123456780) ;
-std::vector<std::shared_ptr<Node>> bidirectional(std::shared_ptr<Node> node ,int goal_id = 123456780);
+std::vector<std::shared_ptr<Node>> solve_puzzle_dls(std::shared_ptr<Node> node , size_t limit = 40 ,int goal_id = 123456780) ;
+std::vector<std::shared_ptr<Node>> faster(std::shared_ptr<Node> node ,int goal_id = 123456780);
+std::vector<std::shared_ptr<Node>> bidirectional(std::shared_ptr<Node> node , int goal_id = 123456780);
 void solve_random_puzzle();
 void solve_your_puzzle();
 void solve_puzzle_by_your_self();
@@ -210,19 +211,207 @@ std::vector<std::shared_ptr<Node>> solve_puzzle_dls(std::shared_ptr<Node> node ,
     return order_dls;
 }
 
-std::vector<std::shared_ptr<Node>> bidirectional(std::shared_ptr<Node> node ,int goal_id)
+std::vector<std::shared_ptr<Node>> faster(std::shared_ptr<Node> node ,int goal_id)
 {
     std::thread first (solve_puzzle_bfs,node,goal_id);
-    std::thread second (solve_puzzle_dls,node,30,goal_id);
+    std::thread second (solve_puzzle_dls,node,40,goal_id);
+    first.joinable();
+    second.joinable();
     first.join();
     second.join();
     if (order_bfs.size() > order_dls.size())
     {
+        std::cout << "\033[1m\033[33m" << "BFS is faster" << "\033[0m" << std::endl;
+        std::time_t start1 = time(0);
+        while( difftime(std::time(0), start1) <=0.5);
         return order_bfs;
     }
     else 
     {
+        std::cout << "\033[1m\033[33m" << "DLS is faster" << "\033[0m" << std::endl;
+        std::time_t start1 = time(0);
+        while( difftime(std::time(0), start1) <=0.5);
         return order_dls;
+    }
+}
+
+std::vector<std::shared_ptr<Node>> bidirectional(std::shared_ptr<Node> node , int goal_id)
+{
+    std::vector<std::shared_ptr<Node>> order;
+
+    node->make_childs();
+    std::vector<int> all_id_source;
+    all_id_source.push_back(node->id);
+    std::vector<std::shared_ptr<Node>> childs_in_this_row_source{node->childs};
+    std::vector<std::shared_ptr<Node>> childs_in_later_row_source;
+    for (size_t i{0} ; i < childs_in_this_row_source.size() ; i++)
+    {
+        all_id_source.push_back(childs_in_this_row_source[i]->id);
+    }
+
+    std::vector<std::vector<int>> members;
+    int pow{8};
+    for (int i{0} ; i < 3 ; i++)
+    {
+        std::vector<int> row;
+        for (int j{0} ; j < 3 ; j++)
+        {
+            int p = std::pow(10,pow);
+            int num = int(goal_id/p);
+            goal_id = goal_id - (p*num);
+            row.push_back(num);
+            pow--;
+        }
+        members.push_back(row);
+    }
+    
+    std::shared_ptr<Node> goal_node{std::make_shared<Node>(members)};
+    goal_node->make_childs();
+    std::vector<int> all_id_goal;
+    all_id_goal.push_back(goal_node->id);
+    std::vector<std::shared_ptr<Node>> childs_in_this_row_goal{goal_node->childs};
+    std::vector<std::shared_ptr<Node>> childs_in_later_row_goal;
+    for (size_t i{0} ; i < childs_in_this_row_goal.size() ; i++)
+    {
+        all_id_goal.push_back(childs_in_this_row_goal[i]->id);
+    }
+
+    while (true)
+    {
+        for (size_t n{0} ; n < childs_in_this_row_source.size() ; n++)
+        {
+            for (size_t m{0} ; m < childs_in_this_row_goal.size() ; m++)
+            {
+                if (childs_in_this_row_source[n]->id == childs_in_this_row_goal[m]->id)
+                {
+                    std::vector<std::shared_ptr<Node>> g_order;
+                    std::shared_ptr<Node> _parent = childs_in_this_row_goal[m];
+                    while (true)
+                    {
+                        if (_parent->parent == nullptr)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            g_order.push_back(_parent);
+                            _parent = _parent->parent;
+                        }
+                        
+                    }
+
+                    for (size_t n{0} ; n < g_order.size() ; n++)
+                    {
+                        order.push_back(g_order[g_order.size()-n-1]);
+                    }
+
+                    _parent = childs_in_this_row_source[n]->parent;
+                    while (true)
+                    {
+                         if (_parent->parent == nullptr)
+                        {
+                            return order;
+                        }
+                        else
+                        {
+                            order.push_back(_parent);
+                            _parent = _parent->parent;
+                        }  
+                    }
+                }
+
+                if (childs_in_this_row_source[n]->id == childs_in_this_row_goal[m]->parent->id)
+                {
+                    std::vector<std::shared_ptr<Node>> g_order;
+                    std::shared_ptr<Node> _parent = childs_in_this_row_goal[m]->parent;
+                    while (true)
+                    {
+                        if (_parent->parent == nullptr)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            g_order.push_back(_parent);
+                            _parent = _parent->parent;
+                        }
+                        
+                    }
+
+                    for (size_t n{0} ; n < g_order.size() ; n++)
+                    {
+                        order.push_back(g_order[g_order.size()-n-1]);
+                    }
+
+                    _parent = childs_in_this_row_source[n]->parent;
+                    while (true)
+                    {
+                         if (_parent->parent == nullptr)
+                        {
+                            return order;
+                        }
+                        else
+                        {
+                            order.push_back(_parent);
+                            _parent = _parent->parent;
+                        }  
+                    }
+                }
+                
+                
+            }
+        }
+
+        for (size_t i{0} ; i < childs_in_this_row_source.size() ; i++)
+        {
+            childs_in_this_row_source[i]->make_childs();
+            for (size_t j{0} ; j < childs_in_this_row_source[i]->childs.size() ; j++)
+            {
+                bool exist = false;
+                for (size_t o{0} ; o < all_id_source.size() ; o++)
+                {
+                    if (all_id_source[o] == childs_in_this_row_source[i]->childs[j]->id)
+                    {
+                        exist = true;
+                        break;
+                    }
+                }
+                if(exist == false && childs_in_this_row_source[i]->childs[j]->id != childs_in_this_row_source[i]->parent->id ) 
+                {
+                    childs_in_later_row_source.push_back(childs_in_this_row_source[i]->childs[j]);
+                    all_id_source.push_back(childs_in_this_row_source[i]->childs[j]->id);
+                }
+            }   
+        }
+        
+        childs_in_this_row_source.clear();
+        childs_in_this_row_source = childs_in_later_row_source;
+        childs_in_later_row_source.clear();
+        for (size_t n{0} ; n < childs_in_this_row_goal.size() ; n++)
+        {
+            childs_in_this_row_goal[n]->make_childs();
+            for (size_t m{0} ; m < childs_in_this_row_goal[n]->childs.size() ; m++)
+            {
+                bool exist = false;
+                for (size_t o{0} ; o < all_id_goal.size() ; o++)
+                {
+                    if (all_id_goal[o] == childs_in_this_row_goal[n]->childs[m]->id)
+                    {
+                        exist = true;
+                        break;
+                    }
+                }
+                if(exist == false && childs_in_this_row_goal[n]->childs[m]->id != childs_in_this_row_goal[n]->parent->id ) 
+                {
+                    childs_in_later_row_goal.push_back(childs_in_this_row_goal[n]->childs[m]);
+                    all_id_goal.push_back(childs_in_this_row_goal[n]->childs[m]->id);
+                }
+            }   
+        }
+        
+        childs_in_this_row_goal.clear();
+        childs_in_this_row_goal = childs_in_later_row_goal;
+        childs_in_later_row_goal.clear();
     }
     
 }
@@ -264,7 +453,8 @@ void solve_random_puzzle()
     std::cout << "\033[1m\033[36m" << "Choose the solution method" << std::endl;
     std::cout << "\033[1m\033[35m" << "1 : Breath First Search (BFS)" << std::endl;
     std::cout << "2 : Depth Limited Search (DLS) " << std::endl;
-    std::cout << "3 : Bidirectional" << "\033[0m" << std::endl;
+    std::cout << "3 : The best algorithm to solve this puzzle (BFS or DLS)" << std::endl;
+    std::cout << "4 : Bidirectional" << "\033[0m" << std::endl;
     std::cout << "\033[1m\033[34m" << "\nWhats Your Command : ";
     int type;
     std::cin >> type;
@@ -286,8 +476,14 @@ void solve_random_puzzle()
 
     if (type == 3)
     {
+        order = faster(node);
+    }
+
+    if (type == 4)
+    {
         order = bidirectional(node);
     }
+    
 
     if (order.size() == 0)
     {
@@ -370,7 +566,8 @@ void solve_your_puzzle()
     std::cout << "\033[1m\033[36m" << "Choose the solution method" << std::endl;
     std::cout << "\033[1m\033[35m" << "1 : Breath First Search (BFS)" << std::endl;
     std::cout << "2 : Depth Limited Search (DLS) " << std::endl;
-    std::cout << "3 : Bidirectional" << "\033[0m" << std::endl;
+    std::cout << "3 : The best algorithm to solve this puzzle (BFS or DLS)" << std::endl;
+    std::cout << "4 : Bidirectional" << "\033[0m" << std::endl;
     std::cout << "\033[1m\033[34m" << "\nWhats Your Command : ";
     int type;
     std::cin >> type;
@@ -391,6 +588,11 @@ void solve_your_puzzle()
     }
 
     if (type == 3)
+    {
+        order = faster(node);
+    }
+
+    if (type == 4)
     {
         order = bidirectional(node);
     }
@@ -481,7 +683,7 @@ void solve_puzzle_by_your_self()
                 std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
                 return;                
             }
-            order = solve_puzzle_bfs(node);
+            order = bidirectional(node);
             if (order.size() == 0)
             {
                 std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
@@ -615,7 +817,8 @@ void solve_random_puzzle_with_special_goal()
     std::cout << "\033[1m\033[36m" << "Choose the solution method" << std::endl;
     std::cout << "\033[1m\033[35m" << "1 : Breath First Search (BFS)" << std::endl;
     std::cout << "2 : Depth Limited Search (DLS) " << std::endl;
-    std::cout << "3 : Bidirectional" << "\033[0m" << std::endl;
+    std::cout << "3 : The best algorithm to solve this puzzle (BFS or DLS)" << std::endl;
+    std::cout << "4 : Bidirectional" << "\033[0m" << std::endl;
     std::cout << "\033[1m\033[34m" << "\nWhats Your Command : ";
     int type;
     std::cin >> type;
@@ -637,9 +840,13 @@ void solve_random_puzzle_with_special_goal()
 
     if (type == 3)
     {
-        order = bidirectional(node,goal_id);
+        order = faster(node,goal_id);
     }
 
+    if (type == 4)
+    {
+        order = bidirectional(node,goal_id);
+    }
     if (order.size() == 0)
     {
         std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
@@ -736,7 +943,8 @@ void solve_your_puzzle_with_special_goal()
     std::cout << "\033[1m\033[36m" << "Choose the solution method" << std::endl;
     std::cout << "\033[1m\033[35m" << "1 : Breath First Search (BFS)" << std::endl;
     std::cout << "2 : Depth Limited Search (DLS) " << std::endl;
-    std::cout << "3 : Bidirectional" << "\033[0m" << std::endl;
+    std::cout << "3 : The best algorithm to solve this puzzle (BFS or DLS)" << std::endl;
+    std::cout << "4 : Bidirectional" << "\033[0m" << std::endl;
     std::cout << "\033[1m\033[34m" << "\nWhats Your Command : ";
     int type;
     std::cin >> type;
@@ -758,9 +966,13 @@ void solve_your_puzzle_with_special_goal()
 
     if (type == 3)
     {
-        order = bidirectional(node,goal_id);
+        order = faster(node,goal_id);
     }
 
+    if (type == 4)
+    {
+        order = bidirectional(node,goal_id);
+    }
     if (order.size() == 0)
     {
         std::cout << "\033[1m\033[31m" << "This Puzzle is not solvable" << "\033[0m" << std::endl;
